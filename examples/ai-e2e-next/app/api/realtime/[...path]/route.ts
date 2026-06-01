@@ -3,6 +3,7 @@ import { google } from '@ai-sdk/google';
 import { xai } from '@ai-sdk/xai';
 import {
   experimental_getRealtimeToolDefinitions,
+  gateway,
   type Experimental_RealtimeFactory,
   type Experimental_RealtimeSessionConfig,
   tool,
@@ -52,6 +53,10 @@ const providers: Record<
   xai: {
     factory: xai.experimental_realtime,
     model: 'grok-3',
+  },
+  gateway: {
+    factory: gateway.experimental_realtime,
+    model: 'openai/gpt-realtime',
   },
 };
 
