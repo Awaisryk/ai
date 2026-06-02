@@ -214,6 +214,45 @@ describe('doGenerate', () => {
     });
   });
 
+  it('should read provider options under `googleVertex` for a Vertex provider', async () => {
+    prepareJsonResponse();
+
+    // Vertex reuses this model with a `google.vertex.*` provider name, so it
+    // reads provider options under `googleVertex` (like the Vertex language
+    // model), not `google`.
+    const vertexModel = new GoogleSpeechModel('gemini-2.5-flash-preview-tts', {
+      provider: 'google.vertex.speech',
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta',
+      headers: () => ({ 'x-goog-api-key': 'test-api-key' }),
+    });
+
+    const multiSpeakerVoiceConfig = {
+      speakerVoiceConfigs: [
+        {
+          speaker: 'Joe',
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+        },
+        {
+          speaker: 'Jane',
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } },
+        },
+      ],
+    };
+
+    await vertexModel.doGenerate({
+      text: 'Joe: Hi. Jane: Hello.',
+      providerOptions: { googleVertex: { multiSpeakerVoiceConfig } },
+    });
+
+    expect(await server.calls[0].requestBodyJson).toStrictEqual({
+      contents: [{ parts: [{ text: 'Joe: Hi. Jane: Hello.' }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: { multiSpeakerVoiceConfig },
+      },
+    });
+  });
+
   it('should ignore instructions (with a warning) when multi-speaker is set', async () => {
     prepareJsonResponse();
 
